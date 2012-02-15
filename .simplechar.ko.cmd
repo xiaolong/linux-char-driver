@@ -1,0 +1,1 @@
+cmd_/home/xcheng/simple-char-driver/simplechar.ko := ld -r -m elf_i386 -T /usr/src/linux-2.6.39.4/scripts/module-common.lds --build-id  -o /home/xcheng/simple-char-driver/simplechar.ko /home/xcheng/simple-char-driver/simplechar.o /home/xcheng/simple-char-driver/simplechar.mod.o

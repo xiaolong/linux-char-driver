@@ -1,0 +1,3 @@
+An implementation of char device driver on Ubuntu Natty 11.04, with re-compiled kernel version 2.6.39.4.
+
+The driver manipulates a memory area as if it is a real device.
