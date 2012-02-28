@@ -15,7 +15,7 @@
 
 #include <linux/slab.h> /* kmalloc()*/
 
-#define SIMPLECHAR_SIZE  0x1000  /* size of virtual device memory buffer */
+#define SIMPLECHAR_SIZE  0x1000  /* size of virtual device memory 4KB */
 #define MEM_CLEAR 0x1  /*  ioctl operation code */
 //#define SIMPLECHAR_MAJOR 254    /*  static device major */
 #define SIMPLECHAR_MAJOR 0 /* dynamic device major */
@@ -27,6 +27,7 @@ struct simplechar_dev
 {
   struct cdev cdev; /*cdev */
   unsigned char mem[SIMPLECHAR_SIZE]; /*virtual device memory size*/
+  struct semaphore sem;//for concurrency control
 };
 
 struct simplechar_dev *simplechar_devp; 
@@ -52,7 +53,13 @@ static int simplechar_ioctl(struct file *filp, unsigned int cmd, unsigned long a
   switch (cmd)
   {
     case MEM_CLEAR:
+      if(down_interruptible(&dev->sem)){//check semaphore
+	return - ERESTARTSYS;
+      }
+
       memset(dev->mem, 0, SIMPLECHAR_SIZE);
+      up(&dev->sem);//release semaphore
+
       printk(KERN_INFO "globalmem is set to zero\n");
       break;
 
@@ -65,6 +72,7 @@ static int simplechar_ioctl(struct file *filp, unsigned int cmd, unsigned long a
 /* read device */
 static ssize_t simplechar_read(struct file *filp, char __user *buf, size_t size, loff_t *ppos)
 {
+  printk(KERN_ALERT "READ %d \n", size);
   unsigned long p =  *ppos;
   unsigned int count = size;
   int ret = 0;
@@ -76,6 +84,9 @@ static ssize_t simplechar_read(struct file *filp, char __user *buf, size_t size,
   if (count > SIMPLECHAR_SIZE - p)
     count = SIMPLECHAR_SIZE - p;
 
+  if(down_interruptible(&dev->sem)){
+    return - ERESTARTSYS;
+  }
   
   if (copy_to_user(buf, (void*)(dev->mem + p), count))
   {
@@ -88,6 +99,8 @@ static ssize_t simplechar_read(struct file *filp, char __user *buf, size_t size,
 
     printk(KERN_INFO "read %u bytes(s) from %lu\n", count, p);
   }
+
+  up(&dev->sem);
 
   return ret;
 }
@@ -107,6 +120,9 @@ static ssize_t simplechar_write(struct file *filp, const char __user *buf,
   if (count > SIMPLECHAR_SIZE - p)
     count = SIMPLECHAR_SIZE - p;
 
+  if(down_interruptible(&dev->sem)){
+    return - ERESTARTSYS;
+  }
   //
   if (copy_from_user(dev->mem + p, buf, count))
     ret =  - EFAULT;
@@ -117,7 +133,8 @@ static ssize_t simplechar_write(struct file *filp, const char __user *buf,
 
     printk(KERN_INFO "written %u bytes(s) from %lu\n", count, p);
   }
-
+  
+  up(&dev->sem);
   return ret;
 }
 
@@ -207,7 +224,7 @@ int simplechar_init(void)
 
   /* dynamically allocate memory for device struct*/
   simplechar_devp = (struct simplechar_dev*)kmalloc(sizeof(struct simplechar_dev), GFP_KERNEL);
-  if (!simplechar_devp)    /* */
+  if (!simplechar_devp)    /* if fail*/
   {
     result =  - ENOMEM;
     goto fail_malloc;
@@ -215,6 +232,9 @@ int simplechar_init(void)
   memset(simplechar_devp, 0, sizeof(struct simplechar_dev));
 
   simplechar_setup_cdev(simplechar_devp, 0);//call the setup method
+  //init_MUTEX(&simplechar_devp->sem);//not working on current kernel version, use sema_init() instead
+  sema_init(&simplechar_devp->sem,1);
+
   printk(KERN_INFO "Init simplechar success!\n");
   return 0;
 

@@ -31,6 +31,8 @@ __attribute__((section("__versions"))) = {
 	{ 0x2f287f0d, "copy_to_user" },
 	{ 0x362ef408, "_copy_from_user" },
 	{ 0x50eedeb8, "printk" },
+	{ 0x57b09822, "up" },
+	{ 0x670c0597, "down_interruptible" },
 	{ 0xb4390f9a, "mcount" },
 };
 
@@ -40,4 +42,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "B4E94539F6EA9C7185CA595");
+MODULE_INFO(srcversion, "0490CF4DF9626297BBD44A2");
