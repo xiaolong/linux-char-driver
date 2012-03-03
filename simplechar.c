@@ -72,7 +72,7 @@ static int simplechar_ioctl(struct file *filp, unsigned int cmd, unsigned long a
 /* read device */
 static ssize_t simplechar_read(struct file *filp, char __user *buf, size_t size, loff_t *ppos)
 {
-  printk(KERN_ALERT "READ %d \n", size);
+  //printk(KERN_ALERT "READ %d \n", size);
   unsigned long p =  *ppos;
   unsigned int count = size;
   int ret = 0;
@@ -86,6 +86,7 @@ static ssize_t simplechar_read(struct file *filp, char __user *buf, size_t size,
 
   if(down_interruptible(&dev->sem)){
     return - ERESTARTSYS;
+    printk(KERN_ALERT "reading confilict! \n");
   }
   
   if (copy_to_user(buf, (void*)(dev->mem + p), count))
@@ -122,6 +123,7 @@ static ssize_t simplechar_write(struct file *filp, const char __user *buf,
 
   if(down_interruptible(&dev->sem)){
     return - ERESTARTSYS;
+    printk(KERN_ALERT "writing confilict! \n");
   }
   //
   if (copy_from_user(dev->mem + p, buf, count))

@@ -1,0 +1,22 @@
+import java.io.*;
+class Reader extends Thread{
+    
+    public Reader(){
+	System.out.println("Reader initialized");
+    }
+
+    public void run(){
+	File file= new File("/dev/simplechar");
+	while(true){
+	    //System.out.println("reading...");
+	    
+	}
+    }
+
+    public static void main(String[] args){
+	Reader reader1= new Reader();
+	Reader reader2= new Reader();
+	reader1.start();
+	reader2.start();
+    }
+}
