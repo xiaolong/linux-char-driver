@@ -7,14 +7,15 @@ class Reader extends Thread{
 
     public void run(){
 	int ch;
-	File file= new File("/dev/simplechar");
-	FileInputStream fin=null;
+	//File file= new File("/dev/simplechar");
+	//FileInputStream fin=null;
 	while(true){
-	    try{
+	    try{/*
 		fin= new FileInputStream(file);
 		while((ch=fin.read())!=-1)
 		    System.out.println((char) ch);
-		fin.close();
+		    fin.close();*/
+		Runtime.getRuntime().exec("cat /dev/simplechar ");
 	    }catch (Exception e){ }
 	}
     }
