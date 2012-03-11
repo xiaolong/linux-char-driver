@@ -17,8 +17,8 @@
 
 #define SIMPLECHAR_SIZE  0x1000  /* size of virtual device memory 4KB */
 #define MEM_CLEAR 0x1  /*  ioctl operation code */
-//#define SIMPLECHAR_MAJOR 254    /*  static device major */
-#define SIMPLECHAR_MAJOR 0 /* dynamic device major */
+#define SIMPLECHAR_MAJOR 222    /*  static device major */
+//#define SIMPLECHAR_MAJOR 0 /* dynamic device major */
 
 static int simplechar_major = SIMPLECHAR_MAJOR;
 
@@ -85,8 +85,8 @@ static ssize_t simplechar_read(struct file *filp, char __user *buf, size_t size,
     count = SIMPLECHAR_SIZE - p;
 
   if(down_interruptible(&dev->sem)){
+    printk(KERN_INFO "reading confilict! \n");
     return - ERESTARTSYS;
-    printk(KERN_ALERT "reading confilict! \n");
   }
   
   if (copy_to_user(buf, (void*)(dev->mem + p), count))
@@ -122,8 +122,8 @@ static ssize_t simplechar_write(struct file *filp, const char __user *buf,
     count = SIMPLECHAR_SIZE - p;
 
   if(down_interruptible(&dev->sem)){
+    printk(KERN_INFO "writing confilict! \n");
     return - ERESTARTSYS;
-    printk(KERN_ALERT "writing confilict! \n");
   }
   //
   if (copy_from_user(dev->mem + p, buf, count))
